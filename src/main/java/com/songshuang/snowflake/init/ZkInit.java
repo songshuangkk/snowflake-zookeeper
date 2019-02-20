@@ -45,6 +45,6 @@ public class ZkInit implements CommandLineRunner {
     // 通过在父节点上创界临时节点来变更
     curatorClint.create().withMode(CreateMode.EPHEMERAL).forPath(Joiner.on("/").join(PARENT_PATH, size));
 
-    // watch child change
+    // watch child change to update node list
   }
 }
