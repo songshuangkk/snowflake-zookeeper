@@ -1,12 +1,15 @@
 package com.songshuang.snowflake.init;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.*;
 import org.apache.zookeeper.CreateMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 public class ZkInit implements CommandLineRunner {
@@ -22,16 +25,51 @@ public class ZkInit implements CommandLineRunner {
       curatorClint.create().forPath("/snowFlake");
     }
 
+    int path = 1;
     int size = curatorClint.getChildren().forPath(PARENT_PATH).size();
-    if (size == 0) {
-      size++;
-    }
+
+    List<ZkNode> nodeList = Lists.newArrayList();
+    final int[] maxNode = {0};
+    boolean allExists = false;
     // 遍历所有的子节点
     curatorClint.getChildren().forPath(PARENT_PATH).forEach(item -> {
+      ZkNode zkNode = ZkNode.builder()
+          .active(true)
+          .path(Integer.parseInt(item))
+          .build();
 
+      nodeList.add(zkNode);
+
+      if (Integer.parseInt(item) > maxNode[0]) {
+        maxNode[0] = Integer.parseInt(item);
+      }
     });
+
+    for (int i=1; i<=maxNode[0]; i++) {
+      boolean exists = false;
+      for (ZkNode zkNode : nodeList) {
+        if (zkNode.getPath().equals(i)) {
+          exists = true;
+          break;
+        }
+      }
+
+      if (!exists) {
+        path = i;
+        System.out.printf("新增节点machine ID %d\n", path);
+        allExists = false;
+        break;
+      }
+
+      allExists = true;
+    }
+
+    if (allExists) {
+      path ++;
+    }
+
     // 通过在父节点上创界临时节点来变更
-    curatorClint.create().withMode(CreateMode.EPHEMERAL).forPath(Joiner.on("/").join(PARENT_PATH, size));
+    curatorClint.create().withMode(CreateMode.EPHEMERAL).forPath(Joiner.on("/").join(PARENT_PATH, path));
 
     // watch child change to update node list
     watch(curatorClint);

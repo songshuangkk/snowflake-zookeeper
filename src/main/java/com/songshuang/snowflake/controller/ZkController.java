@@ -22,4 +22,12 @@ public class ZkController {
   public void add(@PathVariable("num") String num) throws Exception {
     curatorFramework.create().withMode(CreateMode.EPHEMERAL).forPath("/snowFlake/" + num);
   }
+
+  @GetMapping("/child")
+  public void child() throws Exception {
+    // 遍历所有的子节点
+    curatorFramework.getChildren().forPath("/snowFlake").forEach(item -> {
+      System.out.printf("Child Path is %s\n", item);
+    });
+  }
 }
