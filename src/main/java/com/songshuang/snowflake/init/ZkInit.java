@@ -2,6 +2,7 @@ package com.songshuang.snowflake.init;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import com.songshuang.snowflake.generator.SnowFlakeGenerator;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.*;
 import org.apache.zookeeper.CreateMode;
@@ -70,6 +71,8 @@ public class ZkInit implements CommandLineRunner {
 
     // 通过在父节点上创界临时节点来变更
     curatorClint.create().withMode(CreateMode.EPHEMERAL).forPath(Joiner.on("/").join(PARENT_PATH, path));
+
+    SnowFlakeGenerator.MATCH_ID = path;
 
     // watch child change to update node list
     watch(curatorClint);
