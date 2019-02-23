@@ -22,6 +22,8 @@ public class ZkConfig {
 
     curatorClint.start();
 
+    Runtime.getRuntime().addShutdownHook(new Thread(curatorClint::close));
+
     return curatorClint;
   }
 }

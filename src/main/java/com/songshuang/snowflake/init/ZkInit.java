@@ -4,12 +4,14 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.songshuang.snowflake.generator.SnowFlakeGenerator;
 import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.curator.framework.recipes.cache.*;
 import org.apache.zookeeper.CreateMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.List;
 
 @Component
@@ -75,7 +77,10 @@ public class ZkInit implements CommandLineRunner {
     SnowFlakeGenerator.MATCH_ID = path;
 
     // watch child change to update node list
-    watch(curatorClint);
+
+    if (CuratorFrameworkState.STARTED.equals(curatorClint.getState())) {
+      watch(curatorClint);
+    }
   }
 
   private void watch(CuratorFramework curatorClint) {
@@ -95,6 +100,8 @@ public class ZkInit implements CommandLineRunner {
       e.printStackTrace();
     }
 
+    Runtime.getRuntime().addShutdownHook(new Thread(treeCache::close));
+
     NodeCache nodeCache = new NodeCache(curatorClint, PARENT_PATH, false);
 
     NodeCacheListener nodeCacheListener = () -> {
@@ -108,5 +115,13 @@ public class ZkInit implements CommandLineRunner {
     } catch (Exception e) {
       e.printStackTrace();
     }
+
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+      try {
+        nodeCache.close();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }));
   }
 }
