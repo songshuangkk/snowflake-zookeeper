@@ -4,7 +4,6 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.songshuang.snowflake.generator.SnowFlakeGenerator;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.imps.CuratorFrameworkState;
 import org.apache.curator.framework.recipes.cache.*;
 import org.apache.zookeeper.CreateMode;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,9 +77,9 @@ public class ZkInit implements CommandLineRunner {
 
     // watch child change to update node list
 
-    if (CuratorFrameworkState.STARTED.equals(curatorClint.getState())) {
-      watch(curatorClint);
-    }
+//    if (CuratorFrameworkState.STARTED.equals(curatorClint.getState())) {
+//      watch(curatorClint);
+//    }
   }
 
   private void watch(CuratorFramework curatorClint) {
