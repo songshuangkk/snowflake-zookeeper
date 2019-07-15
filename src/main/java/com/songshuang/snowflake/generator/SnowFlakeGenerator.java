@@ -23,6 +23,10 @@ public class SnowFlakeGenerator {
 
   private static volatile long number = 0;
 
+  private static volatile long initNumber = 0L;
+
+  private static final Object lock = new Object();
+
   private static Long getTime() {
     long time = -1 << (MACHINE_LENGTH + SEQUENCE_LENGTH);
     long currentTime = System.currentTimeMillis();
@@ -44,7 +48,17 @@ public class SnowFlakeGenerator {
    return  (-1 << SEQUENCE_LENGTH) & (-1L >>> (TOTAL_LENGTH - MACHINE_LENGTH - SEQUENCE_LENGTH)) & MATCH_ID;
   }
 
-  public static Long getGenerateId() {
-    return getTime() << (SEQUENCE_LENGTH + MACHINE_LENGTH) | getMachine() << SEQUENCE_LENGTH | getSequence();
+  private static Long init() {
+    return getTime() << (SEQUENCE_LENGTH + MACHINE_LENGTH) | getMachine() << SEQUENCE_LENGTH;
+  }
+
+  public static Long getId() {
+    if (initNumber == 0L) {
+      synchronized (lock) {
+        initNumber = init();
+      }
+    }
+
+    return initNumber | getSequence();
   }
 }
